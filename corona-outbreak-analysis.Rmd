@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo=FALSE, warning = FALSE, message = FALSE)
 
 Data was collected from [https://github.com/CSSEGISandData/COVID-19](https://github.com/CSSEGISandData/COVID-19).
 
+The code for this analysis is avaiable on [github](https://github.com/klprint/covid19).
+
 ```{r}
 library(tidyverse)
 
@@ -71,5 +73,53 @@ per.country
 And on log-scale:
 ```{r , dpi=300, fig.width=10, fig.height=7}
 per.country + scale_y_log10() + ylab("log10(cases)")
+```
+
+It is clearly visible, that in most of the countries the increase in cases is following an exponential growth.
+
+# Prediction for Germany
+If we assume an exponential growth, we can use the data available and see what to expect in the next couple of days.
+I know that the circumstances can change very quickly, which is why I only provide the prediction for the next five days:
+```{r}
+x <- cas %>%
+  filter(`Country/Region`=="Germany") %>%
+  filter(date >= "2020-02-27") %>%
+  mutate(d = as.numeric(date))
+
+exp.fit <- nls(cases ~ A * exp( B * as.numeric( date
+                                                - as.numeric(min(x$date) )
+                                                , units = "days" )),
+               start = c(A=20, B=.2),
+               data = x)
+
+x$exp.fit <- predict(exp.fit, x)
+
+future <- tibble(
+  date = min(x$date) + 0:(as.numeric(max(x$date) - min(x$date)) + 5)
+) %>%
+  mutate(cases = predict(exp.fit,.)) %>%
+  add_column(type = "Prediction")
+
+x <- rbind(
+  x %>%
+    ungroup() %>%
+    select(date, cases) %>%
+    add_column(type="Official"),
+  future
+)
+
+x%>%
+  ggplot(aes(x=date, y=cases, color=type)) +
+  geom_point(data= function(y){
+    y %>% filter(type=="Official")
+  }, size=1) +
+  geom_point(data= function(y){
+    y %>% filter(type=="Prediction")
+  }, size=.75)+
+  ggtitle("Cases in Germany") +
+  xlab("Date") +
+  ylab("Cases") +
+  scale_color_discrete(name="") +
+  labs(subtitle = "Prediction = Fit exponential function")
 ```
 
