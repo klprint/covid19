@@ -54,6 +54,7 @@ df = df %>%
 
 # Countries with more than 500 cases:
 The following shows the onset of the COVID19 pandemic in all countries which reported up to today at least 500 cases, starting from March 01, 2020.
+
 ```{r, dpi=300, fig.width=10, fig.height=7}
 per.country <- df %>%
   group_by(`Country/Region`) %>%
@@ -71,15 +72,18 @@ per.country
 ```
 
 And on log-scale:
+
 ```{r , dpi=300, fig.width=10, fig.height=7}
 per.country + scale_y_log10() + ylab("log10(cases)")
 ```
 
 It is clearly visible, that in most of the countries the increase in cases is following an exponential growth.
+Whoever wants to learn more about this, please check out Simon Anders nice [post](http://papagei.zmbh.uni-heidelberg.de/anders/covid/covid.html) and this [video](https://www.youtube.com/watch?v=Kas0tIxDvrg) of 3blue1brown.
 
 # Prediction for Germany
 If we assume an exponential growth, we can use the data available and see what to expect in the next couple of days.
 I know that the circumstances can change very quickly, which is why I only provide the prediction for the next five days:
+
 ```{r}
 x <- cas %>%
   filter(`Country/Region`=="Germany") %>%
@@ -121,5 +125,44 @@ x%>%
   ylab("Cases") +
   scale_color_discrete(name="") +
   labs(subtitle = "Prediction = Fit exponential function")
+```
+
+
+Today:
+```{r echo=FALSE, message=TRUE}
+x %>% filter(date == as.Date(Sys.time())) %>% as.data.frame() %>% print()
+```
+
+
+Next three days:
+```{r echo=FALSE, message=TRUE}
+x %>% filter(date >= as.Date(Sys.time())+1 &
+               date <= as.Date(Sys.time())+3 ) %>% as.data.frame() %>% print()
+```
+
+
+# Mortality rate
+The following plot shows the mortality rate in all countries with more than 500 cases.
+I calculate the mortality rate by dividing the number of COVID19 related deaths by the number of reported cases.
+
+A word of caution: 
+Since many reports suggest a high percentage of infected people which are asymptomatic, the number of reported infections are underestimating the number of truely infected.
+The high mortality rate in Italy might be explained by Italy's [ways of testing for COVID19](https://medium.com/@andreasbackhausab/coronavirus-why-its-so-deadly-in-italy-c4200a15a7bf) and is probably strongly overestimating the mortality rate.
+
+```{r, dpi=300, fig.width=10, fig.height=7}
+dr %>%
+  filter(cases > 500) %>%
+  group_by(`Country/Region`) %>%
+  filter(mean(death_rate) > 0) %>%
+  ungroup() %>%
+  ggplot(aes(x = date,
+             y = death_rate * 100,
+             color=`Country/Region`)) +
+  geom_line(size=.25) +
+  geom_point(size=.1)+
+  facet_wrap(vars(`Country/Region`), scales = "free_y") +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=.5),
+        legend.position = "none") +
+  ylab("Mortality rate [%]")
 ```
 
