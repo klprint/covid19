@@ -3,8 +3,8 @@ title: "COVID19 pandemic"
 author: Kevin Leiss (https://twitter.com/kl_print)
 date: 16.03.2020
 output:
-  html_document:
-    df_print: paged
+  html_document: 
+    toc: yes
 ---
 # Getting the data
 ```{r, include=FALSE}
@@ -82,7 +82,7 @@ Whoever wants to learn more about this, please check out Simon Anders nice [post
 
 # Prediction for Germany
 If we assume an exponential growth, we can use the data available and see what to expect in the next couple of days.
-I know that the circumstances can change very quickly, which is why I only provide the prediction for the next five days:
+I know that the circumstances can change very quickly, which is why I only provide the prediction for the next five days.
 
 ```{r}
 x <- cas %>%
@@ -127,6 +127,13 @@ x%>%
   labs(subtitle = "Prediction = Fit exponential function")
 ```
 
+I fitted the following model to the data:
+
+$$
+cases = A \cdot e^{B \cdot time[days]}
+$$
+
+This model suggests a growth rate of __`r round(coef(exp.fit)["B"],2)`__ per day.
 
 Today:
 ```{r echo=FALSE, message=TRUE}
