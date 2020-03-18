@@ -80,6 +80,53 @@ per.country + scale_y_log10() + ylab("log10(cases)")
 It is clearly visible, that in most of the countries the increase in cases is following an exponential growth.
 Whoever wants to learn more about this, please check out Simon Anders nice [post](http://papagei.zmbh.uni-heidelberg.de/anders/covid/covid.html) and this [video](https://www.youtube.com/watch?v=Kas0tIxDvrg) of 3blue1brown.
 
+# Growth factor
+In exponential growth phase, the growth factor, as defined below, is constantly above 1 (red line in graph).
+If we leave exponential growth, the factor will constantly be below 1.
+Attention: The smaller the daily new case numbers the stronger the growth factor fluctuates, therefore I removed days with less than 10 newly reported cases.
+```{r, dpi=300, fig.width=10, fig.height=7}
+cas %>% 
+  group_by(`Country/Region`) %>% 
+  filter(date >= "2020-03-01") %>% 
+  filter(max(cases) >= 500) %>% 
+  arrange(date, .by_group=T) %>% 
+  mutate(c_cases = cases - lag(cases, default = first(cases))) %>% 
+  filter(c_cases >= 10) %>% 
+  mutate(change_cases = c_cases / lag(c_cases, default = first(c_cases))) %>% 
+  mutate(qual_change = ifelse(change_cases >= 1, "increase", "decrease")) %>% 
+  ggplot(aes(x=date, y=change_cases)) +
+  geom_point(aes(color = qual_change))+
+  geom_line(aes(group=`Country/Region`)) +
+  facet_wrap(vars(`Country/Region`), scales = "free_y") +
+  geom_hline(yintercept = 1, color="red") +
+  scale_color_discrete(name="", limits = c("increase", "decrease")) +
+  ylab("daily cases growth factor") +
+  ggtitle("Daily cases growth factor") +
+  labs(subtitle = "Daily changes < 10 were removed")
+```
+
+For completeness, without removing the changes below 10:
+
+```{r, dpi=300, fig.width=10, fig.height=7}
+cas %>% 
+  group_by(`Country/Region`) %>% 
+  filter(date >= "2020-03-01") %>% 
+  filter(max(cases) >= 500) %>% 
+  arrange(date, .by_group=T) %>% 
+  mutate(c_cases = cases - lag(cases, default = first(cases))) %>% 
+  mutate(change_cases = c_cases / lag(c_cases, default = first(c_cases))) %>% 
+  mutate(qual_change = ifelse(change_cases >= 1, "increase", "decrease")) %>% 
+  ggplot(aes(x=date, y=change_cases)) +
+  geom_point(aes(color = qual_change))+
+  geom_line(aes(group=`Country/Region`)) +
+  facet_wrap(vars(`Country/Region`), scales = "free_y") +
+  geom_hline(yintercept = 1, color="red") +
+  scale_color_discrete(name="", limits = c("increase", "decrease")) +
+  ylab("daily cases growth factor") +
+  ggtitle("Daily cases growth factor")
+```
+
+
 # Prediction for Germany
 If we assume an exponential growth, we can use the data available and see what to expect in the next couple of days.
 I know that the circumstances can change very quickly, which is why I only provide the prediction for the next five days.
