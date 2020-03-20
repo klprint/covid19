@@ -19,6 +19,7 @@ The code for this analysis is avaiable on [github](https://github.com/klprint/co
 ```{r}
 library(tidyverse)
 library(patchwork)
+library(plotly)
 
 cas = read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv") %>%
   gather("date", "cases", -c(`Province/State`,`Country/Region`, Lat, Long)) %>%
@@ -88,23 +89,20 @@ Whoever wants to learn more about this, please check out Simon Anders nice [post
 In the following I plot the number of cases against the days since the cases reached 500 per country.
 This aligns the trajectories very well against each other.
 Furthermore I removed all countries where the days since 500 cases is lower than 10 (less crammed at the origin of the plot).
-```{r}
+
+The following plots are interactive (zoom, use the legend to remove and add countries, etc.).
+
+```{r, dpi=100, fig.width=7, fig.height=4}
 p1 <- cas %>% 
   filter(`Country/Region` != "Cruise Ship") %>% 
   filter(cases >= 500) %>%
   mutate(d = 1:n()) %>% 
   filter(max(d) >= 10) %>% 
-  ggplot(aes(x=d, y=cases, color=`Country/Region`, group=`Country/Region`)) + 
+  ungroup() %>% 
+  ggplot(aes(x=d, y=cases, color=`Country/Region`)) + 
   geom_point()  + 
-  geom_line() + 
-  ggrepel::geom_label_repel(
-    data = function(x){
-      x %>% 
-        filter(d == max(d))
-    },
-    mapping=aes(label=`Country/Region`)
-  )+
-  theme(legend.position = "none") +
+  geom_line(aes(group=`Country/Region`)) +
+  #theme(legend.position = "none") +
   ylab("cases") +
   xlab("days since 500 cases")
 
@@ -113,42 +111,34 @@ p2 <- cas %>%
   filter(cases >= 500) %>%
   mutate(d = 1:n()) %>% 
   filter(max(d) >= 10) %>% 
-  ggplot(aes(x=d, y=cases, color=`Country/Region`, group=`Country/Region`)) + 
+  ungroup() %>% 
+  ggplot(aes(x=d, y=cases, color=`Country/Region`)) + 
   geom_point()  + 
-  geom_line() + 
-  ggrepel::geom_label_repel(
-    data = function(x){
-      x %>% 
-        filter(d == max(d))
-    },
-    mapping=aes(label=`Country/Region`)
-  )+
+  geom_line(aes(group=`Country/Region`)) +
   scale_y_log10() +
-  theme(legend.position = "none") +
+  #theme(legend.position = "none") +
   ylab("log10(cases)") +
   xlab("days since 500 cases")
 
-p1 + p2
+#p1 + p2
+
+ggplotly(p1)
+ggplotly(p2)
 ```
 
 With all countries with more than 500 cases:
 
-```{r}
+```{r, dpi=100, fig.width=7, fig.height=4}
 p1 <- cas %>% 
   filter(`Country/Region` != "Cruise Ship") %>% 
   filter(cases >= 500) %>%
   mutate(d = 1:n()) %>% 
-  ggplot(aes(x=d, y=cases, color=`Country/Region`, group=`Country/Region`)) + 
+  #filter(max(d) >= 10) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=d, y=cases, color=`Country/Region`)) + 
   geom_point()  + 
-  geom_line() + 
-  ggrepel::geom_label_repel(
-    data = function(x){
-      x %>% 
-        filter(d == max(d))
-    },
-    mapping=aes(label=`Country/Region`)
-  )+
-  theme(legend.position = "none") +
+  geom_line(aes(group=`Country/Region`)) +
+  #theme(legend.position = "none") +
   ylab("cases") +
   xlab("days since 500 cases")
 
@@ -156,22 +146,20 @@ p2 <- cas %>%
   filter(`Country/Region` != "Cruise Ship") %>% 
   filter(cases >= 500) %>%
   mutate(d = 1:n()) %>% 
-  ggplot(aes(x=d, y=cases, color=`Country/Region`, group=`Country/Region`)) + 
+  #filter(max(d) >= 10) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=d, y=cases, color=`Country/Region`)) + 
   geom_point()  + 
-  geom_line() + 
-  ggrepel::geom_label_repel(
-    data = function(x){
-      x %>% 
-        filter(d == max(d))
-    },
-    mapping=aes(label=`Country/Region`)
-  )+
+  geom_line(aes(group=`Country/Region`)) +
   scale_y_log10() +
-  theme(legend.position = "none") +
+  #theme(legend.position = "none") +
   ylab("log10(cases)") +
   xlab("days since 500 cases")
 
-p1 + p2
+#p1 + p2
+
+ggplotly(p1)
+ggplotly(p2)
 ```
 
 
