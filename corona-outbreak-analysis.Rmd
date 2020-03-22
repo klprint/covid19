@@ -1,7 +1,7 @@
 ---
 title: "COVID19 pandemic"
 author: Kevin Leiss (https://twitter.com/kl_print)
-date: 20.03.2020
+date: 22.03.2020
 output:
   html_document: 
     toc: yes
